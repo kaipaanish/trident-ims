@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import type { Vendor, Hybrid, ProcessingUnit, Warehouse } from '@/lib/supabase'
 import Link from 'next/link'
-import { Search, Filter, Download, PackagePlus, Trash2, Eye } from 'lucide-react'
+import { Search, Filter, Download, PackagePlus, Trash2, Eye, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react'
 
 const ITEMS_PER_PAGE = 15
 
@@ -261,24 +261,103 @@ export default function DispatchListPage() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-between px-4 py-3 border-t border-slate-800">
+          <div className="flex flex-col sm:flex-row items-center justify-between px-4 py-3 border-t border-slate-800 gap-3">
             <span className="text-slate-500 text-xs">
               Showing {page * ITEMS_PER_PAGE + 1}–{Math.min((page + 1) * ITEMS_PER_PAGE, total)} of {total}
             </span>
-            <div className="flex gap-1">
-              {Array.from({ length: Math.min(totalPages, 8) }).map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setPage(i)}
-                  className={`w-7 h-7 rounded text-xs font-medium transition-colors ${
-                    page === i
-                      ? 'bg-green-600 text-white'
-                      : 'text-slate-400 hover:bg-slate-800'
-                  }`}
-                >
-                  {i + 1}
-                </button>
-              ))}
+            
+            <div className="flex items-center gap-1">
+              {/* First Page */}
+              <button
+                onClick={() => setPage(0)}
+                disabled={page === 0}
+                className="w-8 h-8 rounded border border-slate-800 flex items-center justify-center text-slate-400 hover:bg-slate-800 hover:text-white disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+                title="First Page"
+              >
+                <ChevronsLeft className="w-4 h-4" />
+              </button>
+
+              {/* Prev Page */}
+              <button
+                onClick={() => setPage(p => Math.max(0, p - 1))}
+                disabled={page === 0}
+                className="w-8 h-8 rounded border border-slate-800 flex items-center justify-center text-slate-400 hover:bg-slate-800 hover:text-white disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+                title="Previous Page"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+
+              {/* Page Numbers */}
+              {(() => {
+                const pageNumbers = []
+                if (totalPages <= 7) {
+                  for (let i = 0; i < totalPages; i++) pageNumbers.push(i)
+                } else {
+                  pageNumbers.push(0) // Always show first page
+                  
+                  if (page > 2) {
+                    pageNumbers.push('ellipsis-start')
+                  }
+                  
+                  const start = Math.max(1, page - 1)
+                  const end = Math.min(totalPages - 2, page + 1)
+                  
+                  for (let i = start; i <= end; i++) {
+                    pageNumbers.push(i)
+                  }
+                  
+                  if (page < totalPages - 3) {
+                    pageNumbers.push('ellipsis-end')
+                  }
+                  
+                  pageNumbers.push(totalPages - 1) // Always show last page
+                }
+
+                return pageNumbers.map((p, idx) => {
+                  if (p === 'ellipsis-start' || p === 'ellipsis-end') {
+                    return (
+                      <span key={`ellipse-${idx}`} className="w-8 h-8 flex items-center justify-center text-slate-600 text-xs select-none">
+                        ...
+                      </span>
+                    )
+                  }
+                  
+                  const pageIndex = p as number
+                  return (
+                    <button
+                      key={pageIndex}
+                      onClick={() => setPage(pageIndex)}
+                      className={`w-8 h-8 rounded text-xs font-medium border transition-colors ${
+                        page === pageIndex
+                          ? 'bg-green-600 border-green-600 text-white'
+                          : 'border-slate-800 text-slate-400 hover:bg-slate-800 hover:text-white'
+                      }`}
+                    >
+                      {pageIndex + 1}
+                    </button>
+                  )
+                })
+              })()}
+
+              {/* Next Page */}
+              <button
+                onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                disabled={page === totalPages - 1}
+                className="w-8 h-8 rounded border border-slate-800 flex items-center justify-center text-slate-400 hover:bg-slate-800 hover:text-white disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+                title="Next Page"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+
+              {/* Last Page */}
+              <button
+                onClick={() => setPage(totalPages - 1)}
+                disabled={page === totalPages - 1}
+                className="w-8 h-8 rounded border border-slate-800 flex items-center justify-center text-slate-400 hover:bg-slate-800 hover:text-white disabled:opacity-30 disabled:hover:bg-transparent transition-colors"
+                title="Last Page"
+              >
+                <ChevronsRight className="w-4 h-4" />
+              </button>
             </div>
           </div>
         )}
